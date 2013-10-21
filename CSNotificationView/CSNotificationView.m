@@ -269,6 +269,24 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
     }
 }
 
+- (void)dismissWithStyle:(CSNotificationViewStyle)style message:(NSString *)message animated:(BOOL)animated
+{
+    NSParameterAssert(message);
+    
+    __block typeof(self) weakself = self;
+    [UIView animateWithDuration:0.1 animations:^{
+        
+        weakself.showingActivity = NO;
+        weakself.image = [CSNotificationView imageForStyle:style];
+        weakself.textLabel.text = message;
+        weakself.tintColor = [CSNotificationView blurTintColorForStyle:style];
+        
+    } completion:^(BOOL finished) {
+        UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+        [self addGestureRecognizer:tapRecognizer];
+    }];
+}
+
 - (void)dismissWithStyle:(CSNotificationViewStyle)style message:(NSString *)message duration:(NSTimeInterval)duration animated:(BOOL)animated
 {
     NSParameterAssert(message);
@@ -450,6 +468,16 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
             break;
     }
     return blurTintColor;
+}
+
+#pragma mark tap handling
+
+- (void)handleTap:(UITapGestureRecognizer *)sender
+{
+    if (sender.state == UIGestureRecognizerStateEnded)
+    {
+        [self setVisible:NO animated:YES completion:nil];
+    }
 }
 
 @end
