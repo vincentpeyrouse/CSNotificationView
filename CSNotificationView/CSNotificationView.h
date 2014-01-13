@@ -44,8 +44,7 @@ typedef enum {
 
 #pragma mark - presentation
 
-- (void)setVisible:(BOOL)showing animated:(BOOL)animated completion:(void (^)())completion;
-- (void)dismissWithStyle:(CSNotificationViewStyle)style message:(NSString*)message animated:(BOOL)animated;
+- (void)setVisible:(BOOL)showing animated:(BOOL)animated tapHandler:(UITapGestureRecognizer *)tapHandler completion:(void (^)())completion;
 - (void)dismissWithStyle:(CSNotificationViewStyle)style message:(NSString*)message duration:(NSTimeInterval)duration animated:(BOOL)animated;
 @property (readonly, nonatomic, getter = isShowing) BOOL visible;
 

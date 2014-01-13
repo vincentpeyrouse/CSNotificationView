@@ -25,6 +25,9 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
 @property (nonatomic, strong) UILabel* textLabel;
 @property (nonatomic, strong) UIColor* contentColor;
 
+#pragma mark - tap handling
+@property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
+
 @end
 
 @implementation CSNotificationView
@@ -45,8 +48,8 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
     note.image = image;
     note.textLabel.text = message;
     
-    void (^completion)() = ^{[note setVisible:NO animated:YES completion:nil];};
-    [note setVisible:YES animated:YES completion:^{
+    void (^completion)() = ^{[note setVisible:NO animated:YES tapHandler:nil completion:nil];};
+    [note setVisible:YES animated:YES tapHandler:nil completion:^{
         double delayInSeconds = duration;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
@@ -238,8 +241,13 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
 
 #pragma mark - presentation
 
-- (void)setVisible:(BOOL)visible animated:(BOOL)animated completion:(void (^)())completion
+- (void)setVisible:(BOOL)visible animated:(BOOL)animated tapHandler:(UITapGestureRecognizer *)tapHandler completion:(void (^)())completion
 {
+    if (tapHandler) {
+        _tapRecognizer = tapHandler;
+        [self addGestureRecognizer:_tapRecognizer];
+    }
+    
     if (_visible != visible) {
         
         NSTimeInterval animationDuration = animated ? 0.4 : 0.0;
@@ -269,24 +277,6 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
     }
 }
 
-- (void)dismissWithStyle:(CSNotificationViewStyle)style message:(NSString *)message animated:(BOOL)animated
-{
-    NSParameterAssert(message);
-    
-    __block typeof(self) weakself = self;
-    [UIView animateWithDuration:0.1 animations:^{
-        
-        weakself.showingActivity = NO;
-        weakself.image = [CSNotificationView imageForStyle:style];
-        weakself.textLabel.text = message;
-        weakself.tintColor = [CSNotificationView blurTintColorForStyle:style];
-        
-    } completion:^(BOOL finished) {
-        UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
-        [self addGestureRecognizer:tapRecognizer];
-    }];
-}
-
 - (void)dismissWithStyle:(CSNotificationViewStyle)style message:(NSString *)message duration:(NSTimeInterval)duration animated:(BOOL)animated
 {
     NSParameterAssert(message);
@@ -303,7 +293,7 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
         double delayInSeconds = 2.0;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-            [weakself setVisible:NO animated:animated completion:nil];
+            [weakself setVisible:NO animated:animated tapHandler:nil completion:nil];
         });
     }];
 }
@@ -468,16 +458,6 @@ static NSInteger const kCSNotificationViewEmptySymbolViewTag = 666;
             break;
     }
     return blurTintColor;
-}
-
-#pragma mark tap handling
-
-- (void)handleTap:(UITapGestureRecognizer *)sender
-{
-    if (sender.state == UIGestureRecognizerStateEnded)
-    {
-        [self setVisible:NO animated:YES completion:nil];
-    }
 }
 
 @end

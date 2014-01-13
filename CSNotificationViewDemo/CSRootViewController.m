@@ -51,8 +51,10 @@
     
     [self.permanentNotification setShowingActivity:YES];
     
+    UITapGestureRecognizer *tapHandler = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+    
     __block typeof(self) weakself = self;
-    [self.permanentNotification setVisible:YES animated:YES completion:^{
+    [self.permanentNotification setVisible:YES animated:YES tapHandler:tapHandler completion:^{
 
         weakself.navigationItem.rightBarButtonItem =
                 [[UIBarButtonItem alloc] initWithTitle:@"Cancel"
@@ -88,5 +90,12 @@
     self.permanentNotification = nil;
 }
 
+#pragma mark tap handling
+- (void)handleTap:(UITapGestureRecognizer *)sender
+{
+    if (sender.state == UIGestureRecognizerStateEnded) {
+        [self.permanentNotification setVisible:NO animated:YES tapHandler:nil completion:nil];
+    }
+}
 
 @end
